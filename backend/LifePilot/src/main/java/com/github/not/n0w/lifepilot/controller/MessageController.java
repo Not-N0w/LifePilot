@@ -40,6 +40,8 @@ public class MessageController {
 
 
         String gptResponse = messageService.handleTextMessage(user.getId(), text);
+
+        log.info("Response sent successfully");
         return Map.of(
                 "role", "assistant",
                 "text", gptResponse
@@ -59,12 +61,14 @@ public class MessageController {
         );
 
         String gptResponse = messageService.handleAudioMessage(user.getId(), audio);
+        log.info("Response sent successfully");
         return Map.of("text", gptResponse);
 
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handle(AuthenticationException ex) {
+        log.error(ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of(

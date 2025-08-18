@@ -39,6 +39,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody AuthRequest request) {
         var user = userService.registerUser(request.getUsername(), request.getPassword());
+        log.info("Register request received");
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
@@ -49,6 +50,7 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userDetails, user.getId());
         String refreshToken = jwtService.generateRefreshToken(userDetails, user.getId());
 
+        log.info("Successfully registered user");
         return ResponseEntity.ok(Map.of(
                 "accessToken", accessToken,
                 "refreshToken", refreshToken
@@ -57,6 +59,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequest request) {
+        log.info("Login request received");
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
@@ -68,6 +72,7 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userDetails, user.getId());
         String refreshToken = jwtService.generateRefreshToken(userDetails, user.getId());
 
+        log.info("Successfully logged in");
         return ResponseEntity.ok(Map.of(
                 "accessToken", accessToken,
                 "refreshToken", refreshToken
@@ -78,13 +83,17 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refresh(@RequestBody RefreshRequest request) {
+        log.info("Refresh request received");
+
         String refreshToken = request.refreshToken;
         if (refreshToken == null || refreshToken.isBlank()) {
+            log.info("No refresh token found");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Refresh token is required"));
         }
 
         if (!jwtService.isTokenValid(refreshToken)) {
+            log.info("Refresh token is invalid");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Invalid refresh token"));
         }
@@ -96,6 +105,7 @@ public class AuthController {
 
         String newAccessToken = jwtService.generateToken(userDetails, user.getId());
 
+        log.info("Successfully refreshed token");
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 

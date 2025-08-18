@@ -100,6 +100,7 @@ public class GetMetricsTask implements AiTask {
 
     @Override
     public UserSession execute(UserSession userSession, User user) {
+        log.info("Executing GetMetricsTask");
         AiResponse response = null;
         if(user.getExtraState() == 0) {
             String analyzePrompt = promptLoader.loadPromptText("taskPrompts/getMetrics/GetMetricsAnalyzePrompt.txt");
@@ -123,7 +124,7 @@ public class GetMetricsTask implements AiTask {
             userSession.setUserMessages(new ArrayList<>());
         }
         else {
-            log.info("Tool call detected: {}", response.getToolCalls());
+
 
             user.setTask(AiTaskType.TALK);
 
@@ -135,6 +136,8 @@ public class GetMetricsTask implements AiTask {
 
             userRepository.save(user);
             List<Metric> metrics = extractMetricsFromJson(response.getToolCalls(), user.getId());
+            log.info("New metrics found: {}", metrics.toString());
+
             metricRepository.saveAll(metrics);
             log.info("Metrics saved to database");
 

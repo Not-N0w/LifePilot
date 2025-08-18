@@ -89,6 +89,7 @@ public class AcquaintanceTask implements AiTask {
 
     @Override
     public UserSession execute(UserSession userSession, User user) {
+        log.info("Executing acquaintance task");
         String analyzePrompt = promptLoader.loadPromptText("taskPrompts/acquaintance/AcquaintanceAnalyzePrompt.txt");
         UserSession analyzeMetricsUserSession = new UserSession(
                 List.of(new Message("system", analyzePrompt)),
@@ -97,15 +98,18 @@ public class AcquaintanceTask implements AiTask {
         AiResponse response = aiTextClient.ask(analyzeMetricsUserSession, List.of(toolRegistry.getSetUserInfoToolCall()));
 
         if(response.getToolCalls().isEmpty()) {
+            log.info("No tool calls found -> continue acquaintance");
             String prompt = promptLoader.loadPromptText("taskPrompts/acquaintance/AcquaintancePrompt.txt");
             userSession.addSystemMessage(prompt);
         }
         else {
-            log.info("Tool call detected: {}", response.getToolCalls());
 
             user.setTask(AiTaskType.TALK);
 
             UserInfo userInfo = extractUserInfoFromJson(response.getToolCalls());
+            log.info("Acquaintance ended. User info {}", userInfo.toString());
+
+
             user.setName(userInfo.getName());
             user.setGender(userInfo.getGender());
 

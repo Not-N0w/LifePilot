@@ -49,20 +49,17 @@ public class AIServiceImpl implements AIService {
         userMessage.setMessage(userText);
         userMessage.setRole("user");
         savedMessagesRepository.save(userMessage);
-        log.info("User message saved successfully");
 
         AiRequest request = new AiRequest(user, messageList);
-        log.info("AiRequest: {}", request);
 
         AiResponse response = aiManager.process(request);
-        log.info("AiResponse: {}", response);
+        log.info("Response from gpt: {}", response.toString());
 
         SavedMessage responseMessage = new SavedMessage();
         responseMessage.setUser(user);
         responseMessage.setMessage(response.getAnswerToUser());
         responseMessage.setRole("assistant");
         savedMessagesRepository.save(responseMessage);
-        log.info("Assistant message saved successfully");
 
         return response.getAnswerToUser();
     }

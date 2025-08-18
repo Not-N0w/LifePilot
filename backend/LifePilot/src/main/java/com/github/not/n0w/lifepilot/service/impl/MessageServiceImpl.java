@@ -17,15 +17,14 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public String handleTextMessage(Long userId, String text) {
-
         String response;
 
         if(text != null && !text.isEmpty()) {
             response = aiService.sendMessage(userId, text);
         }
         else {
-            log.error("text is empty");
-            throw new RuntimeException("text is empty");
+            log.error("Received text message is empty");
+            throw new RuntimeException("Received text message is empty");
         }
         return response;
     }
@@ -35,12 +34,15 @@ public class MessageServiceImpl implements MessageService {
 
         String response;
         if(audioFile != null) {
+            log.info("Loaded audio file to whisper");
             String textFromVoice = whisperService.voiceToText(audioFile);
+            log.info("Audio transcribed successfully");
+
             response = aiService.sendMessage(userId, textFromVoice);
         }
         else {
-            log.error("no audio found");
-            throw new RuntimeException("no audio found");
+            log.error("No audio message received");
+            throw new RuntimeException("No audio message received");
         }
 
         return response;

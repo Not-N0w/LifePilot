@@ -63,7 +63,8 @@ public class AiTextClient {
                 aiConfig.getAiModel(), userSession, tools
         );
 
-        log.info("Request (with tools): {}", requestPayload.toString());
+        log.info("Full request to GPT (with tools): {}", requestPayload);
+
 
         try {
             String responseBody = aiWebClient.post()
@@ -86,7 +87,10 @@ public class AiTextClient {
                     .doOnError(error -> log.error("Request to AI failed", error))
                     .block();
 
-            return processAiResponse(responseBody);
+            AiResponse aiResponse = processAiResponse(responseBody);
+            log.info("Full response from GPT (with tools): {}", aiResponse.toString());
+
+            return aiResponse;
 
         } catch (Exception e) {
             log.error("AI communication failed: {}", e.getMessage(), e);
@@ -104,10 +108,10 @@ public class AiTextClient {
         } catch (JsonProcessingException e) {
             log.error("Error parsing request: {}", requestJson);
         }
-
-        log.info("Request JSON: {}", requestJson);
-
         assert requestJson != null;
+
+        log.info("Full request to GPT: {}", requestJson);
+
         String responseBody = aiWebClient.post()
                 .bodyValue(requestJson)
                 .exchangeToMono(response -> {
@@ -116,9 +120,10 @@ public class AiTextClient {
                 })
                 .block();
 
-        log.info("Response body: {}", responseBody);
+        AiResponse aiResponse = processAiResponse(responseBody);
+        log.info("Full response from GPT: {}", aiResponse.toString());
 
-        return processAiResponse(responseBody);
+        return aiResponse;
     }
 
     @Getter
