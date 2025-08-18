@@ -63,7 +63,7 @@ public class AiTextClient {
                 aiConfig.getAiModel(), userSession, tools
         );
 
-        log.info("Full request to GPT (with tools): {}", requestPayload);
+        log.info("Full request to GPT (with tools): {}", requestPayload.toString());
 
 
         try {
