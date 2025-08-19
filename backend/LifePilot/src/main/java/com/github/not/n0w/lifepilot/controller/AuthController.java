@@ -110,6 +110,29 @@ public class AuthController {
     }
 
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<Map<String, String>> deleteAccount(HttpServletRequest request) {
+        log.info("Delete account request received");
+
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Authorization header is missing or invalid"));
+        }
+
+        String token = authHeader.substring(7);
+        if (!jwtService.isTokenValid(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Invalid token"));
+        }
+
+        String username = jwtService.extractUsername(token);
+        userRepository.findByUsername(username).ifPresent(userRepository::delete);
+
+        log.info("Successfully deleted account for user: {}", username);
+        return ResponseEntity.ok(Map.of("message", "Account deleted successfully"));
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handle(AuthenticationException ex) {
         return ResponseEntity
