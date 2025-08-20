@@ -25,7 +25,7 @@ public class MessageServiceImpl implements MessageService {
     private final Map<String, Job> jobs = new ConcurrentHashMap<>();
 
 
-    private String startJob(Long userId, String text) {
+    private String startGptTextJob(Long userId, String text) {
         String jobId = UUID.randomUUID().toString();
         jobs.put(jobId,
                 new Job(
@@ -54,6 +54,42 @@ public class MessageServiceImpl implements MessageService {
         return jobId;
     }
 
+    private String startGptAudioJob(Long userId, MultipartFile audioFile) {
+        String jobId = UUID.randomUUID().toString();
+
+        jobs.put(jobId,
+                new Job(
+                        jobId,
+                        userId,
+                        "",
+                        Instant.now().plus(Duration.ofMinutes(20)),
+                        Job.JobStatus.PENDING,
+                        null
+                )
+        );
+        log.info("Starting job {}", jobId);
+        new Thread(() -> {
+
+            log.info("Loaded audio file to whisper");
+            String textFromVoice = whisperService.voiceToText(audioFile);
+            log.info("Audio transcribed successfully");
+
+            Job job = new Job(
+                    jobId,
+                    userId,
+                    textFromVoice,
+                    Instant.now().plus(Duration.ofMinutes(10)),
+                    Job.JobStatus.DONE,
+                    aiService.sendMessage(userId, textFromVoice)
+            );
+
+            jobs.put(jobId, job);
+        }).start();
+
+        return jobId;
+    }
+
+
     @Override
     public String handleTextMessage(Long userId, String text) {
         if(text == null || text.isEmpty()) {
@@ -61,7 +97,7 @@ public class MessageServiceImpl implements MessageService {
             throw new RuntimeException("Received text message is empty");
         }
 
-        return startJob(userId, text);
+        return startGptTextJob(userId, text);
     }
 
     @Override
@@ -71,11 +107,8 @@ public class MessageServiceImpl implements MessageService {
             throw new RuntimeException("No audio message received");
         }
 
-        log.info("Loaded audio file to whisper");
-        String textFromVoice = whisperService.voiceToText(audioFile);
-        log.info("Audio transcribed successfully");
 
-        return startJob(userId, textFromVoice);
+        return startGptAudioJob(userId, audioFile);
 
     }
 
@@ -90,7 +123,9 @@ public class MessageServiceImpl implements MessageService {
         }
         if(job.getUserId().equals(userId)) {
             Optional<Job> jobFound = Optional.of(job);
-            jobs.remove(jobId);
+            if(jobFound.get().getStatus() == Job.JobStatus.DONE) {
+                jobs.remove(jobId);
+            }
 
             return jobFound;
         }

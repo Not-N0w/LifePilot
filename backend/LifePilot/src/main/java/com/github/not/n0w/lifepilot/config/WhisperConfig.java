@@ -36,7 +36,6 @@ public class WhisperConfig {
         return WebClient.builder()
                 .baseUrl("http://" + whisperHost + ":" + whisperPort)
                 .clientConnector(new ReactorClientHttpConnector(client))
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 }
