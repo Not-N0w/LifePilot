@@ -91,6 +91,7 @@ public class MessageController {
             return ResponseEntity.ok(Map.of(
                     "job_id", jobId,
                     "status", "DONE",
+                    "role", "assistant",
                     "message", jobResponse.getGptResponse()
                     ));
         }
