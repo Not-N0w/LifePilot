@@ -2,6 +2,7 @@ package com.github.not.n0w.lifepilot.service.impl;
 
 import com.github.not.n0w.lifepilot.config.JwtProperties;
 import com.github.not.n0w.lifepilot.config.SecurityConfig;
+import com.github.not.n0w.lifepilot.exception.TokenExpiredException;
 import com.github.not.n0w.lifepilot.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -60,7 +61,7 @@ public class JwtServiceImpl implements JwtService {
             throw new AuthenticationException("Invalid token: username does not match") {};
         }
         if (isTokenExpired(token)) {
-            throw new AuthenticationException("Token has expired") {};
+            throw new TokenExpiredException("Token has expired") {};
         }
         return true;
     }
@@ -68,7 +69,7 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean isTokenValid(String token) {
         if (isTokenExpired(token)) {
-            throw new AuthenticationException("Token has expired") {};
+            throw new TokenExpiredException("Token has expired") {};
         }
         return true;
     }

@@ -1,9 +1,7 @@
 package com.github.not.n0w.lifepilot.controller;
 
-
 import com.github.not.n0w.lifepilot.model.User;
 import com.github.not.n0w.lifepilot.repository.UserRepository;
-import com.github.not.n0w.lifepilot.service.JwtService;
 import com.github.not.n0w.lifepilot.service.MessageService;
 import com.github.not.n0w.lifepilot.service.job.Job;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +30,12 @@ public class MessageController {
     @PostMapping(value = "/text", produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
     public ResponseEntity<Map<String, String>> handleTextMessage(@RequestBody TextRequest request) {
         String text = request.text();
+        if (text == null || text.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid text"));
+        }
+
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new AuthenticationException("User not found") {}
@@ -50,6 +54,12 @@ public class MessageController {
     public ResponseEntity<Map<String, String>> handleAudioMessage(
             @RequestPart("audio") MultipartFile audio
     ) {
+        if(audio.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Invalid audio"));
+        }
+
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new AuthenticationException("User not found") {}

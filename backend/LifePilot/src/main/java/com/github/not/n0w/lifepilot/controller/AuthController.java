@@ -94,7 +94,8 @@ public class AuthController {
 
         if (!jwtService.isTokenValid(refreshToken)) {
             log.info("Refresh token is invalid");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Invalid refresh token"));
         }
 
