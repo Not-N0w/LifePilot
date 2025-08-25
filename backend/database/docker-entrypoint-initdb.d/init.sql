@@ -6,7 +6,6 @@ CREATE TABLE users (
    name VARCHAR(30),
    gender CHAR(1) CHECK (gender IN ('М', 'Ж')),
    usual_dialog_style VARCHAR(20) DEFAULT 'BASE',
-   task VARCHAR(20)
 );
 
 
