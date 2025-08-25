@@ -12,14 +12,16 @@ import java.util.List;
 public interface MetricRepository extends JpaRepository<Metric, Long> {
 
     @Query(value = """
-        SELECT * FROM metrics m
-        WHERE m.user_id = :userId AND m.created_at = (
-            SELECT MAX(m2.created_at)
-            FROM metrics m2
-            WHERE m2.user_id = :userId
-        )
-    """, nativeQuery = true)
+    SELECT *
+    FROM (
+        SELECT m.*,
+               ROW_NUMBER() OVER(PARTITION BY m.metric_type ORDER BY m.created_at DESC) AS rn
+        FROM metrics m
+        WHERE m.user_id = :userId
+    ) t
+    WHERE t.rn = 1
+""", nativeQuery = true)
     List<Metric> findLatestMetricsByUserId(@Param("userId") Long userId);
 
-
+    List<Metric> findAllByUserIdOrderByCreatedAtDesc(Long userId);
 }

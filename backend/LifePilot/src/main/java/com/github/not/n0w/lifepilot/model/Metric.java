@@ -2,6 +2,7 @@ package com.github.not.n0w.lifepilot.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,7 +10,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "metrics")
 @Data
+@NoArgsConstructor
 public class Metric {
+
+    public Metric(Long userId, MetricType metricType, Integer value) {
+        this.userId = userId;
+        this.metricType = metricType;
+        this.metricValue = value;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

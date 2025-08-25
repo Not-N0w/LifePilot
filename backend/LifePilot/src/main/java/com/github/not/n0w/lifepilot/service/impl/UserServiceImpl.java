@@ -12,9 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +39,15 @@ public class UserServiceImpl implements UserService {
         user.setUsualDialogStyle(DialogStyle.BASE);
         user.setTasks(taskRepository.findAll());
         user = userRepository.save(user);
+
+        List<Metric> metrics = List.of(
+                new Metric(user.getId(), MetricType.MENTAL_STATE, 50),
+                new Metric(user.getId(), MetricType.PHYSICAL_STATE, 50),
+                new Metric(user.getId(), MetricType.SOCIAL_ENVIRONMENT, 50),
+                new Metric(user.getId(), MetricType.GOALS_AND_ACTIONS, 50)
+        );
+        metricRepository.saveAll(metrics);
+
         log.info("New user created: {}", user.toString());
         return user;
     }
@@ -55,10 +64,62 @@ public class UserServiceImpl implements UserService {
                         m -> m.getMetricType().toString(),
                         Metric::getMetricValue
                 ));
-
+        metricsMap.put("general",
+                (int)Math.round(
+                     metricList.stream()
+                        .mapToInt(Metric::getMetricValue)
+                        .average()
+                        .orElse(0.0)
+             )
+        );
         response.put("metrics", metricsMap);
         log.info("User metrics: {}", metricList);
 
+        return response;
+    }
+
+    private Integer getLbsPoint(List<Metric> metrics) {
+        return (int) Math.round(
+                metrics.stream()
+                        .collect(Collectors.groupingBy(metric -> metric.getMetricType().toString(),
+                                Collectors.collectingAndThen(
+                                        Collectors.maxBy(Comparator.comparing(Metric::getCreatedAt)),
+                                        optionalMetric -> optionalMetric.map(Metric::getMetricValue).orElse(null)
+                                )
+                        ))
+                        .values()
+                        .stream()
+                        .filter(Objects::nonNull)
+                        .mapToInt(Integer::intValue)
+                        .average()
+                        .orElse(0.0)
+        );
+    }
+    private boolean isClose(LocalDateTime a, LocalDateTime b, int seconds) {
+        return Math.abs(java.time.Duration.between(a, b).getSeconds()) <= seconds;
+    }
+
+    @Override
+    public Map<String, Object> getUserLbsPoints(String username) {
+        Map<String, Object> response = new HashMap<>();
+
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new AuthenticationException("User not found") {}
+        );
+
+        List<Metric> metricList = metricRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
+        List<Integer> lbsPoints = new ArrayList<>();
+
+        LocalDateTime createdAtSaved = LocalDateTime.MIN;
+        for(int i = 0; i < metricList.size(); i++) {
+            if (isClose(createdAtSaved, metricList.get(i).getCreatedAt(), 30)) {
+                continue;
+            }
+            createdAtSaved = metricList.get(i).getCreatedAt();
+            lbsPoints.add(getLbsPoint(metricList.subList(i, metricList.size())));
+        }
+        response.put("points", lbsPoints);
+        log.info("User lbs points: {}", lbsPoints);
         return response;
     }
 

@@ -79,10 +79,7 @@ public class GetMetricsTask implements AiTask {
                     try {
                         MetricType metricType = MetricType.fromKey(metricName);
 
-                        Metric metric = new Metric();
-                        metric.setMetricType(metricType);
-                        metric.setMetricValue(valueNode.asInt());
-                        metric.setUserId(userId);
+                        Metric metric = new Metric(userId, metricType, valueNode.asInt());
 
                         metrics.add(metric);
                     } catch (IllegalArgumentException e) {

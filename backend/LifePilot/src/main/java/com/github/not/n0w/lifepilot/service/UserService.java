@@ -11,5 +11,5 @@ public interface UserService {
     public User registerUser(String username, String password) throws AuthenticationException;
     public Map<String, String> getUserInfo(String username);
     public Map<String, Object> getUserMetrics(String username);
-
+    public Map<String, Object> getUserLbsPoints(String username);
 }

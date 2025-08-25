@@ -47,6 +47,19 @@ public class UserController {
         return response;
     }
 
+    @GetMapping(value = "/lbs-points", produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
+    public Map<String, Object> getUserLbsPoints() {
+        log.info("User life balance score points request received");
+
+        Map<String, Object> response = userService.getUserLbsPoints(
+                SecurityContextHolder.getContext().getAuthentication().getName()
+        );
+
+        log.info("User life balance score points sent successfully");
+
+        return response;
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, String>> handle(AuthenticationException ex) {
         log.error(ex.getMessage());
