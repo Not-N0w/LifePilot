@@ -103,16 +103,12 @@ public class AcquaintanceTask implements AiTask {
             userSession.addSystemMessage(prompt);
         }
         else {
-
-            user.setTask(AiTaskType.TALK);
-
+            user.removeTask(AiTaskType.ACQUAINTANCE); // !!!
             UserInfo userInfo = extractUserInfoFromJson(response.getToolCalls());
             log.info("Acquaintance ended. User info {}", userInfo.toString());
 
-
             user.setName(userInfo.getName());
             user.setGender(userInfo.getGender());
-
             userRepository.save(user);
 
         }

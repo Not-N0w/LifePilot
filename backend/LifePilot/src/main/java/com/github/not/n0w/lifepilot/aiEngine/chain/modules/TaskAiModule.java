@@ -4,10 +4,13 @@ import com.github.not.n0w.lifepilot.aiEngine.chain.AiModule;
 import com.github.not.n0w.lifepilot.aiEngine.model.AiResponse;
 import com.github.not.n0w.lifepilot.aiEngine.model.ChainRequest;
 import com.github.not.n0w.lifepilot.aiEngine.model.UserSession;
+import com.github.not.n0w.lifepilot.aiEngine.task.AiTask;
 import com.github.not.n0w.lifepilot.aiEngine.task.TaskManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
 
 @RequiredArgsConstructor
 @Component
@@ -18,9 +21,12 @@ public class TaskAiModule implements AiModule  {
 
     @Override
     public AiResponse passThrough(ChainRequest request) {
-        var task = taskManager.getTask(request.getUser().getTask());
-        UserSession userSession = task.execute(request.getUserSession(), request.getUser());
-        request.setUserSession(userSession);
+
+        for(var task : new ArrayList<>(request.getUser().getTasks())) {
+            AiTask aiTask = taskManager.getTask(task.getName());
+            UserSession userSession = aiTask.execute(request.getUserSession(), request.getUser());
+            request.setUserSession(userSession);
+        }
         return nextAiModule.passThrough(request);
     }
 

@@ -9,6 +9,7 @@ import com.github.not.n0w.lifepilot.aiEngine.model.Message;
 import com.github.not.n0w.lifepilot.aiEngine.tool.ToolCall;
 import com.github.not.n0w.lifepilot.config.AiConfig;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -127,6 +128,7 @@ public class AiTextClient {
     }
 
     @Getter
+    @Data
     static class OpenAiApiRequest {
         String model;
         List<Message> messages;

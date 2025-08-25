@@ -102,51 +102,26 @@ public class GetMetricsTask implements AiTask {
     public UserSession execute(UserSession userSession, User user) {
         log.info("Executing GetMetricsTask");
         AiResponse response = null;
-        if(user.getExtraState() == 0) {
-            String analyzePrompt = promptLoader.loadPromptText("taskPrompts/getMetrics/GetMetricsAnalyzePrompt.txt");
-            UserSession analyzeMetricsUserSession = new UserSession(
-                    List.of(new Message("system", analyzePrompt)),
-                    userSession.getUserMessages()
-            );
-           response = aiTextClient.ask(analyzeMetricsUserSession, List.of(toolRegistry.getSetMetricsToolCall()));
-        }
+
+        String analyzePrompt = promptLoader.loadPromptText("taskPrompts/getMetrics/GetMetricsAnalyzePrompt.txt");
+        UserSession analyzeMetricsUserSession = new UserSession(
+                List.of(new Message("system", analyzePrompt)),
+                userSession.getUserMessages()
+        );
+        response = aiTextClient.ask(analyzeMetricsUserSession, List.of(toolRegistry.getSetMetricsToolCall()));
+
         boolean isNoToolCalls = response == null || response.getToolCalls().isEmpty();
-        if(isNoToolCalls) {
-            String prompt;
-            if(user.getExtraState() == 2) {
-                prompt = promptLoader.loadPromptText("taskPrompts/getMetrics/GetMetricsRetryPrompt.txt");
-
-            }
-            else {
-                prompt = promptLoader.loadPromptText("taskPrompts/getMetrics/GetMetricsPrompt.txt");
-            }
-            userSession.addSystemMessage(prompt);
-            userSession.setUserMessages(new ArrayList<>());
-        }
-        else {
-
-
-            user.setTask(AiTaskType.TALK);
-
+        if(!isNoToolCalls) {
             List<Metric> previousMetrics = metricRepository.findLatestMetricsByUserId(user.getId());
-
-
             String metricsStr = "Предыдущие метрики пользователя: " +
                     (previousMetrics == null ? "" : previousMetrics.toString()) + '\n';
+            userSession.addSystemMessage(metricsStr);
 
-            userRepository.save(user);
             List<Metric> metrics = extractMetricsFromJson(response.getToolCalls(), user.getId());
             log.info("New metrics found: {}", metrics.toString());
 
             metricRepository.saveAll(metrics);
             log.info("Metrics saved to database");
-
-            String prompt = promptLoader.loadPromptText("taskPrompts/getMetrics/GetMetricsAcceptPrompt.txt");
-            userSession.addSystemMessage(prompt);
-
-
-            metricsStr += "Новые метрики пользователя:\n" +  metrics.toString();
-            userSession.addSystemMessage(metricsStr);
         }
         return userSession;
     }

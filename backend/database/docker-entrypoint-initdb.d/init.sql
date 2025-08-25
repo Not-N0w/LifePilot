@@ -10,6 +10,26 @@ CREATE TABLE users (
 );
 
 
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(20) UNIQUE
+);
+
+INSERT INTO tasks (name)
+VALUES 
+    ('GET_METRICS'),
+    ('TALK'),
+    ('ACQUAINTANCE');
+
+CREATE TABLE users_tasks (
+    user_id INTEGER,
+    task_id INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+
+
+
 CREATE TABLE metrics (
     id SERIAL PRIMARY KEY,
     user_id INTEGER,

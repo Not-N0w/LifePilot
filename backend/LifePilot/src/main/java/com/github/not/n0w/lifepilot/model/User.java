@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import java.util.List;
+
 
 @Data
 @Entity
@@ -26,14 +28,22 @@ public class User {
     @Column(name="gender")
     private String gender;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private AiTaskType task = AiTaskType.ACQUAINTANCE;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "users_tasks",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "task_id")
+    )
+    private List<Task> tasks;
 
     @Column(name = "usual_dialog_style")
     @Enumerated(EnumType.STRING)
     private DialogStyle usualDialogStyle = DialogStyle.BASE;
 
-    @Transient
-    private int extraState = 0; // 0 - regular; 1 - just pushed; 2 - pushed twice and more
+
+    public void removeTask(AiTaskType type) {
+        if (tasks != null) {
+            tasks.removeIf(t -> t.getName() == type);
+        }
+    }
 }

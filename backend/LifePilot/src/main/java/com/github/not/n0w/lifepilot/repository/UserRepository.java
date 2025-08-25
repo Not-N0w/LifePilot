@@ -11,11 +11,5 @@ import java.util.Optional;
 
 @Transactional
 public interface UserRepository extends JpaRepository<User, Long> {
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE User c SET c.task = 'GET_METRICS'")
-    int globalSetTaskGetMetrics();
-
     Optional<User> findByUsername(String username);
 }
