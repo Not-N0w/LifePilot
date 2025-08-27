@@ -23,5 +23,17 @@ public interface MetricRepository extends JpaRepository<Metric, Long> {
 """, nativeQuery = true)
     List<Metric> findLatestMetricsByUserId(@Param("userId") Long userId);
 
+    @Query(value = """
+    SELECT *
+    FROM (
+        SELECT m.*,
+               ROW_NUMBER() OVER(PARTITION BY m.metric_type ORDER BY m.created_at DESC) AS rn
+        FROM metrics m
+        WHERE m.user_id = :userId
+    ) t
+    WHERE t.rn = 2
+""", nativeQuery = true)
+    List<Metric> findPreviousMetricsByUserId(@Param("userId") Long userId);
+
     List<Metric> findAllByUserIdOrderByCreatedAtDesc(Long userId);
 }

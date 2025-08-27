@@ -5,6 +5,8 @@ import com.github.not.n0w.lifepilot.repository.MetricRepository;
 import com.github.not.n0w.lifepilot.repository.TaskRepository;
 import com.github.not.n0w.lifepilot.repository.UserRepository;
 import com.github.not.n0w.lifepilot.service.UserService;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
@@ -59,20 +61,52 @@ public class UserServiceImpl implements UserService {
                 () -> new AuthenticationException("User not found") {}
         );
         List<Metric> metricList = metricRepository.findLatestMetricsByUserId(user.getId());
-        Map<String, Integer> metricsMap = metricList.stream()
-                .collect(Collectors.toMap(
-                        m -> m.getMetricType().toString(),
-                        Metric::getMetricValue
-                ));
-        metricsMap.put("general",
-                (int)Math.round(
-                     metricList.stream()
+        List<Metric> previousMetrics = metricRepository.findPreviousMetricsByUserId(user.getId());
+        Integer currentGeneral = (int)Math.round(
+                metricList.stream()
                         .mapToInt(Metric::getMetricValue)
                         .average()
-                        .orElse(0.0)
-             )
+                        .orElse(0.0));
+        Integer previousGeneral = (int)Math.round(
+                previousMetrics.stream()
+                        .mapToInt(Metric::getMetricValue)
+                        .average()
+                        .orElse(0.0));
+
+        @AllArgsConstructor
+        @Data
+        class MetricComparison {
+            private String metricType;
+            private Integer currentValue;
+            private Integer previousValue;
+        }
+        List<MetricComparison> comparisons = new ArrayList<>(Arrays.stream(MetricType.values())
+                .map(type -> {
+                    Integer current = metricList.stream()
+                            .filter(m -> m.getMetricType() == type)
+                            .map(Metric::getMetricValue)
+                            .findFirst()
+                            .orElse(-1);
+
+                    Integer previous = previousMetrics.stream()
+                            .filter(m -> m.getMetricType() == type)
+                            .map(Metric::getMetricValue)
+                            .findFirst()
+                            .orElse(-1);
+
+                    return new MetricComparison(type.getKey(), current, previous);
+                })
+                .toList());
+
+        comparisons.add(
+                new MetricComparison(
+                        "general",
+                        currentGeneral,
+                        previousGeneral
+                )
         );
-        response.put("metrics", metricsMap);
+
+        response.put("metrics", comparisons);
         log.info("User metrics: {}", metricList);
 
         return response;
