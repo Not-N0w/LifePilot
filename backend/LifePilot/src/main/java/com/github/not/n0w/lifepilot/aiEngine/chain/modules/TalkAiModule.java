@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Slf4j
 public class TalkAiModule implements AiModule {
     private AiModule nextAiModule;
-    private boolean isTerminal = true;
+    private boolean isTerminal = false;
     private AiTextClient aiTextClient;
     @Autowired
     public void setWebClient(AiTextClient aiTextClient) {
@@ -47,7 +47,13 @@ public class TalkAiModule implements AiModule {
                 new Message("assistant", aiResponse.getAnswerToUser())
         );
         request.setUserSession(userSession);
-        return nextAiModule.passThrough(request);
+        AiResponse response = nextAiModule.passThrough(request);
+        return new AiResponse(
+                response.getAnswerToUser(),
+                response.getAdvice(),
+                response.getAnalysis(),
+                aiResponse.getToolCalls()
+        );
     }
 
     @Override

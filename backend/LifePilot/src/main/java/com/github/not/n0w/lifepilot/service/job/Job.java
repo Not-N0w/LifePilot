@@ -1,5 +1,6 @@
 package com.github.not.n0w.lifepilot.service.job;
 
+import com.github.not.n0w.lifepilot.model.AssistantResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ public class Job {
     private final String userRequest;
     private final Instant expires;
     private JobStatus status;
-    private String gptResponse;
+    private AssistantResponse assistantResponse;
 
     public static enum JobStatus {
         PENDING, DONE

@@ -4,10 +4,7 @@ import com.github.not.n0w.lifepilot.aiEngine.AiManager;
 import com.github.not.n0w.lifepilot.aiEngine.model.AiRequest;
 import com.github.not.n0w.lifepilot.aiEngine.model.AiResponse;
 import com.github.not.n0w.lifepilot.aiEngine.model.Message;
-import com.github.not.n0w.lifepilot.model.AiTaskType;
-import com.github.not.n0w.lifepilot.model.User;
-import com.github.not.n0w.lifepilot.model.DialogStyle;
-import com.github.not.n0w.lifepilot.model.SavedMessage;
+import com.github.not.n0w.lifepilot.model.*;
 import com.github.not.n0w.lifepilot.repository.UserRepository;
 import com.github.not.n0w.lifepilot.repository.SavedMessagesRepository;
 import com.github.not.n0w.lifepilot.service.AIService;
@@ -16,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -32,7 +30,7 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
-    public String sendMessage(Long userId, String userText) {
+    public AssistantResponse sendMessage(Long userId, String userText) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new RuntimeException("User not found")
         );
@@ -57,10 +55,15 @@ public class AIServiceImpl implements AIService {
 
         SavedMessage responseMessage = new SavedMessage();
         responseMessage.setUser(user);
-        responseMessage.setMessage(response.getAnswerToUser());
+        responseMessage.setMessage(
+                response.getAnswerToUser() +
+                "<advice>" + response.getAdvice() + "</advice>" +
+                "<analysis>" + response.getAnalysis() + "/<analysis>"
+        );
         responseMessage.setRole("assistant");
         savedMessagesRepository.save(responseMessage);
 
-        return response.getAnswerToUser();
+        return new AssistantResponse(response.getAnswerToUser(), response.getAdvice(), response.getAnalysis());
+
     }
 }
