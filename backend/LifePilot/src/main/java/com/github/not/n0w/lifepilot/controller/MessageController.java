@@ -1,5 +1,6 @@
 package com.github.not.n0w.lifepilot.controller;
 
+import com.github.not.n0w.lifepilot.aiEngine.model.Message;
 import com.github.not.n0w.lifepilot.model.User;
 import com.github.not.n0w.lifepilot.repository.UserRepository;
 import com.github.not.n0w.lifepilot.service.MessageService;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,13 +101,26 @@ public class MessageController {
             ));
         }
         else {
-            return ResponseEntity.ok(Map.of(
-                    "job_id", jobId,
-                    "status", "DONE",
-                    "answer", jobResponse.getAssistantResponse().getAnswer(),
-                    "advice", jobResponse.getAssistantResponse().getAdvice(),
-                    "analysis", jobResponse.getAssistantResponse().getAnalysis()
-                    ));
+            Message answer = jobResponse.getAssistantResponse().getAnswer();
+            Message advice = jobResponse.getAssistantResponse().getAdvice();
+            Message analysis = jobResponse.getAssistantResponse().getAnalysis();
+
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("job_id", jobId);
+            body.put("status", "DONE");
+
+            if (!answer.getContent().isBlank()) {
+                body.put("answer", answer);
+            }
+            if (!advice.getContent().isBlank()) {
+                body.put("advice", advice);
+            }
+            if (!analysis.getContent().isBlank()) {
+                body.put("analysis", analysis);
+            }
+
+            return ResponseEntity.ok(body);
         }
     }
 
