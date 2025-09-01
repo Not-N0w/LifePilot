@@ -63,7 +63,11 @@ public class AIServiceImpl implements AIService {
         responseMessage.setRole("assistant");
         savedMessagesRepository.save(responseMessage);
 
-        return new AssistantResponse(response.getAnswerToUser(), response.getAdvice(), response.getAnalysis());
+        return new AssistantResponse(
+                new Message("assistant", response.getAnswerToUser()),
+                new Message("assistant", response.getAdvice()),
+                new Message("assistant", response.getAnalysis())
+        );
 
     }
 }

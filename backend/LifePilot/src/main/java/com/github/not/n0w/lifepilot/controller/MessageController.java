@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -74,7 +75,7 @@ public class MessageController {
     }
 
     @GetMapping(value = "/checkout", produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
-    public ResponseEntity<Map<String, String>> checkoutGptResponse(@RequestParam("job_id") String jobId) {
+    public ResponseEntity<Map<String, Object>> checkoutGptResponse(@RequestParam("job_id") String jobId) {
         log.info("Checkout job with id = {}", jobId);
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username).orElseThrow(
