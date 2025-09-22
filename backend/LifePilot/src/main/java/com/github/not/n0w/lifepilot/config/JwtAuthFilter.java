@@ -1,6 +1,8 @@
 package com.github.not.n0w.lifepilot.config;
 
 import com.github.not.n0w.lifepilot.service.JwtService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +49,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
                     if (jwtService.isTokenValid(jwt, userDetails)) {
+                        if (!jwtService.extractIsVerified(jwt)) {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"status\":\"error\",\"message\":\"Email not verified\"}");
+                            return;
+                        }
                         UsernamePasswordAuthenticationToken authToken =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

@@ -37,6 +37,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api/auth/login",
                                 "/api/auth/register",
+                                "/api/auth/confirm-email",
+                                "/api/auth/verification",
                                 "/api/auth/refresh")
                         .permitAll()
                         .anyRequest().authenticated()

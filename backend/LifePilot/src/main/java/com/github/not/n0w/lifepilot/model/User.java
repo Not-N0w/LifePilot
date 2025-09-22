@@ -28,6 +28,9 @@ public class User {
     @Column(name="gender")
     private String gender;
 
+    @Column(name="is_verified")
+    private Boolean isVerified ;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_tasks",

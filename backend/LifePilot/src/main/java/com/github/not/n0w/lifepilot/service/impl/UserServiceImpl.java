@@ -4,6 +4,7 @@ import com.github.not.n0w.lifepilot.model.*;
 import com.github.not.n0w.lifepilot.repository.MetricRepository;
 import com.github.not.n0w.lifepilot.repository.TaskRepository;
 import com.github.not.n0w.lifepilot.repository.UserRepository;
+import com.github.not.n0w.lifepilot.service.MailService;
 import com.github.not.n0w.lifepilot.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,6 +29,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final MetricRepository metricRepository;
     private final TaskRepository taskRepository;
+    private final MailService mailService;
+
 
     public User registerUser(String username, String password) {
         if (userRepository.findByUsername(username).isPresent()) {
@@ -40,6 +43,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(password));
         user.setUsualDialogStyle(DialogStyle.BASE);
         user.setTasks(taskRepository.findAll());
+        user.setIsVerified(false);
         user = userRepository.save(user);
 
         List<Metric> metrics = List.of(
@@ -156,6 +160,21 @@ public class UserServiceImpl implements UserService {
         log.info("User lbs points: {}", lbsPoints);
         return response;
     }
+    @Override
+    public void sendVerifyMail(String username, int code) {
+        String subject = "Подтверждение вашей почты";
+
+        String text = String.format(
+                "Здравствуйте, %s!\n\n" +
+                        "Ваш код подтверждения: %06d\n" +
+                        "Срок действия кода: 10 минут.\n\n" +
+                        "Если вы не регистрировались, просто проигнорируйте это письмо.",
+                username,
+                code
+        );
+
+        mailService.sendMail(username, subject, text);
+    }
 
     @Override
     public Map<String, String> getUserInfo(String username) {
@@ -172,5 +191,15 @@ public class UserServiceImpl implements UserService {
         log.info("User info: {}", response);
 
         return response;
+    }
+
+    @Override
+    public User verifyUser(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new AuthenticationException("User not found") {}
+        );
+        user.setIsVerified(true);
+        userRepository.save(user);
+        return user;
     }
 }

@@ -3,6 +3,7 @@ CREATE TABLE users (
    id SERIAL PRIMARY KEY,
    username VARCHAR(30),
    password TEXT NOT NULL CHECK (password <> ''),
+   is_verified BOOLEAN NOT NULL,
    name VARCHAR(30),
    gender CHAR(1) CHECK (gender IN ('М', 'Ж')),
    usual_dialog_style VARCHAR(20) DEFAULT 'BASE',

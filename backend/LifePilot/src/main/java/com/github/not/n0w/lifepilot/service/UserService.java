@@ -12,4 +12,6 @@ public interface UserService {
     public Map<String, String> getUserInfo(String username);
     public Map<String, Object> getUserMetrics(String username);
     public Map<String, Object> getUserLbsPoints(String username);
+    public void sendVerifyMail(String username, int code);
+    public User verifyUser(String username);
 }

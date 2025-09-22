@@ -1,7 +1,5 @@
 package com.github.not.n0w.lifepilot.controller;
 
-import com.github.not.n0w.lifepilot.repository.MetricRepository;
-import com.github.not.n0w.lifepilot.repository.UserRepository;
 import com.github.not.n0w.lifepilot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

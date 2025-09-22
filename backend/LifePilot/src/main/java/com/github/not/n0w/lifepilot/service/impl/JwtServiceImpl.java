@@ -5,6 +5,7 @@ import com.github.not.n0w.lifepilot.config.SecurityConfig;
 import com.github.not.n0w.lifepilot.exception.TokenExpiredException;
 import com.github.not.n0w.lifepilot.service.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -24,12 +25,19 @@ public class JwtServiceImpl implements JwtService {
     private static final long REFRESH_TOKEN_EXP = 1000L * 60 * 60 * 24 * 7; // 7 дней
 
     @Override
-    public String generateToken(UserDetails userDetails, Long userId) {
+    public boolean extractIsVerified(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("isVerified", Boolean.class);
+    }
+
+    @Override
+    public String generateToken(UserDetails userDetails, Long userId, Boolean isVerified) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 час
                 .claim("userId", userId)
+                .claim("isVerified", isVerified)
                 .signWith(getSignKey())
                 .compact();
     }
@@ -72,6 +80,39 @@ public class JwtServiceImpl implements JwtService {
             throw new TokenExpiredException("Token has expired") {};
         }
         return true;
+    }
+    @Override
+    public String generateVerificationToken(String email, int code) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 10 * 60 * 1000); // 10 минут
+
+        return Jwts.builder()
+                .subject(email)
+                .claim("code", code)
+                .claim("purpose", "EMAIL_CONFIRMATION")
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSignKey())
+                .compact();
+    }
+
+    public String validateVerificationCode(String token, int userInputCode) {
+        try {
+            Claims claims = extractAllClaims(token);
+
+            if (!"EMAIL_CONFIRMATION".equals(claims.get("purpose"))) {
+                throw new IllegalArgumentException("Invalid token purpose");
+            }
+
+            int code = (int) claims.get("code");
+            if (code != userInputCode) {
+                throw new IllegalArgumentException("Invalid code");
+            }
+
+            return claims.getSubject();
+        } catch (JwtException ex) {
+            throw new IllegalArgumentException("Invalid or expired token");
+        }
     }
 
     private boolean isTokenExpired(String token) {
