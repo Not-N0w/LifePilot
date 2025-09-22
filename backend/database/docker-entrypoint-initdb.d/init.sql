@@ -6,7 +6,7 @@ CREATE TABLE users (
    is_verified BOOLEAN NOT NULL,
    name VARCHAR(30),
    gender CHAR(1) CHECK (gender IN ('М', 'Ж')),
-   usual_dialog_style VARCHAR(20) DEFAULT 'BASE',
+   usual_dialog_style VARCHAR(20) DEFAULT 'BASE'
 );
 
 
